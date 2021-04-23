@@ -8,6 +8,7 @@ dashboard_state = R6::R6Class(
     d = NULL,
     proj_dir = NULL,
     proj_sub_pat= NULL,
+    proj_had_settings = NULL,
 
     sub_path = NULL,
     sub_name = NULL,
@@ -19,6 +20,7 @@ dashboard_state = R6::R6Class(
     output_path = NULL,
     output_name = NULL
   ),
+
   public = list(
     initialize = function(path, pattern = NULL, regexp = FALSE) {
       private$proj_dir = fs::path_expand(path)
@@ -26,7 +28,7 @@ dashboard_state = R6::R6Class(
 
       settings_path = fs::path(private$proj_dir, "gradermd_settings.rds")
       if (fs::file_exists(settings_path)) {
-
+        private$proj_had_settings = TRUE
         do.call(self$set_setting, c(readRDS(settings_path), warn = FALSE))
       }
 
@@ -35,6 +37,10 @@ dashboard_state = R6::R6Class(
       self$update_output()
 
       invisible(self)
+    },
+
+    had_settings = function() {
+      private$proj_had_settings
     },
 
     print_settings = function() {
@@ -160,7 +166,34 @@ dashboard_state = R6::R6Class(
       }
 
       invisible(self)
+    },
+
+    click = function(cell, col, row) {
+
+      #cat(cell, col, row, "\n")
+
+      if (is.null(cell) || is.na(cell) || cell == "" || cell == FALSE)
+        return()
+
+      dir = if (col == "dir") {
+        private$sub_path[ row ]
+      } else if (col == "proj") {
+        private$sub_rproj_path[ row ]
+      } else if (col == "Assignment") {
+        private$assign_path[ row ]
+      } else if (col == "Output") {
+        private$output_path[ row ]
+      } else {
+        return()
+      }
+
+      stopifnot(length(dir) <= 1)
+      stopifnot(fs::file_exists(dir))
+
+      system_open(dir)
     }
+
+
 
   )
 )
