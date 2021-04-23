@@ -199,7 +199,21 @@ update_submissions = function(state) {
   state$sub_path = path
   state$sub_name = fs::path_file(path)
 
-  update_table(state, Submission = state$sub_name)
+  state$proj_path = purrr::map(
+    path,
+    fs::dir_ls,
+    type = "file",
+    regexp = "\\.rproj$",
+    ignore.case = TRUE
+  ) %>%
+    purrr::map_chr(1, .default = NA)
+
+  update_table(
+    state,
+    Submission = state$sub_name,
+    dir = TRUE,
+    proj = !is.na(state$proj_path)
+  )
 }
 
 update_assignments = function(state) {
@@ -274,35 +288,16 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
 
   app = shiny::shinyApp(
     ui = shiny::fluidPage(
-      shiny::tags$head(
-        shiny::tags$style("
-.tag {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 5px;
-  font-size: 95%;
-}
-
-.status-outdated {
-  background: hsl(230, 70%, 90%);
-  /*color: hsl(230, 45%, 30%);*/
-}
-
-.status-missing {
-  background: hsl(350, 70%, 90%);
-  /*color: hsl(350, 45%, 30%);*/
-}
-        ")
+      shiny::includeCSS(system.file("www/gradermd.css", package="gradermd")),
+      menubar(dir),
+      shiny::tags$div(
+        style = "padding-left: 1%; padding-right: 1%; padding-top: 0.5em;",
+        reactable::reactableOutput("table"),
+        shiny::tags$br()
       ),
-    menubar(dir),
-    shiny::tags$div(
-      style = "padding-left: 1%; padding-right: 1%; padding-top: 0.5em;",
-      reactable::reactableOutput("table"),
-      shiny::tags$br()
-    ),
 
-    theme = bslib::bs_theme(version = 4)
-        ),
+      theme = bslib::bs_theme(version = 4)
+    ),
     server = function(input, output, session) {
       test_test = 1
 
@@ -340,6 +335,8 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
             dir = state$assign_path[ row ]
           } else if (col == "Output") {
             dir = state$output_path[ row ]
+          } else {
+            return()
           }
 
           stopifnot(length(dir) <= 1)
@@ -368,21 +365,52 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
           ),
           defaultColDef = reactable::colDef(
             minWidth = 150,
-            style = "user-select: none",
-            cell = function(value) {
-              if (!is.na(value))
-                return(value)
-
-              htmltools::div(
-                class = "tag status-missing",
-                "Missing"
-              )
+            #style = "user-select: none",
+            cell = function(value, row, col) {
+              if (is.na(value)) {
+                htmltools::div(
+                  class = "tag status-missing",
+                  "Missing"
+                )
+              } else if (col == "Assignment") {
+                shiny::tags$div(
+                  rs_icon("newRMarkdownDoc", 24),
+                  value
+                )
+              } else if (col == "Output") {
+                shiny::tags$div(
+                  if (state$setting_output == "html") {
+                    rs_icon("newHtmlDoc", 24)
+                  } else if (state$setting_output == "pdf") {
+                    rs_icon("compilePDF", 24)
+                  } else if (state$setting_output == "R") {
+                    rs_icon("newSourceDoc", 24)
+                  } else {
+                    rs_icon("newTextDoc", 24)
+                  },
+                  value
+                )
+              } else if (col == "dir") {
+                shiny::tags$div(
+                  if (value) rs_icon("folder", 24)
+                  else       ""
+                )
+              } else if (col == "proj") {
+                shiny::tags$div(
+                  if (value) rs_icon("application-x-r-project", 24)
+                  else       ""
+                )
+              } else {
+                value
+              }
             }
           ),
           columns = list(
             Submission = reactable::colDef(
               minWidth = 250
-            )
+            ),
+            dir  = icon_col(),
+            proj = icon_col()
           ),
           onClick = reactable::JS(
             "function(rowInfo, colInfo) {
@@ -400,5 +428,22 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
     }
   )
 
-  shiny::runApp(app, launch.browser = TRUE, )
+  shiny::runApp(app, launch.browser = TRUE)
 }
+
+icon_col = function(name = "") {
+  reactable::colDef(
+    minWidth = 40,
+    name = name,
+    align = "center",
+    style = list(
+      paddingLeft = "0",
+      paddingRight = "0",
+      borderLeft = "0"
+    ),
+    headerStyle = list(
+      borderLeft = "0"
+    )
+  )
+}
+

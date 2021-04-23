@@ -31,3 +31,13 @@ pat_to_regex = function(pattern, is_regex) {
   else
     utils::glob2rx(pattern)
 }
+
+rs_icon = function(name, h = NULL, w = NULL, class = "rs_icon") {
+  rsicons::icon(
+    name, h, w,
+    output = "tag",
+    resize = TRUE,
+    method = "at_least",
+    class = "rs_icon"
+  )
+}

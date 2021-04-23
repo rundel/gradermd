@@ -20,4 +20,8 @@ Imports:
     DT,
     fs,
     magrittr,
-    shiny
+    shiny,
+    rsicons,
+    R6
+Remotes:
+    rundel/rsicons
