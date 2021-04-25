@@ -1,35 +1,21 @@
-system_open = function(dir = getwd()) {
-  dir = sub("file://", "", dir)
-  dir = fs::path_real(dir)
+system_open = function(path) {
+  path = fs::path_real(path)
+  stopifnot(file.exists(path))
 
   if (.Platform['OS.type'] == "windows"){
-    shell.exec(paste0("file://", dir))
+    shell.exec(paste0("file://", path))
   } else {
-    system(paste(Sys.getenv("R_BROWSER"), dir))
+    system(paste(Sys.getenv("R_BROWSER"), path))
   }
 }
 
-
-copy_env = function(from, to, names = ls(from, all.names=TRUE)) {
-  mapply(
-    assign, names, mget(names, from), list(to),
-    SIMPLIFY = FALSE, USE.NAMES = FALSE)
-
-  invisible()
-}
-
-
 `%||%` = function (x, y) {
-  if (is.null(x)) y
-  else            x
+  if (is.null(x)) y else x
 }
 
 
 pat_to_regex = function(pattern, is_regex) {
-  if (is_regex)
-    pattern
-  else
-    utils::glob2rx(pattern)
+  if (is_regex) pattern else utils::glob2rx(pattern)
 }
 
 rs_icon = function(name, h = NULL, w = NULL, class = "rs_icon") {
