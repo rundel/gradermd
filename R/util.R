@@ -73,3 +73,14 @@ runjs = function(code, sessioon) {
   session$sendCustomMessage(type = fxn, message = params)
   invisible(NULL)
 }
+
+
+bs_action_button = function(input_id, text = "Loading...") {
+  shiny::actionButton(
+    input_id,
+    shiny::tagList(
+      shiny::span(class="spinner-border spinner-border-sm", role="status", `aria-hidden`="true"),
+      text
+    )
+  )
+}
