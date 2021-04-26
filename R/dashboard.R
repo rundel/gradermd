@@ -45,6 +45,26 @@ menubar = function(proj_dir) {
           class = "dropdown-item"
         ),
 
+        shiny::tags$div(class = "dropdown-divider"),
+
+        shiny::actionLink(
+          "menu_render_all", "Render all ...",
+          class = "dropdown-item"
+        ),
+
+        shiny::actionLink(
+          "menu_render_outdated", "Render outdated ...",
+          class = "dropdown-item"
+        ),
+
+        shiny::actionLink(
+          "menu_render_missing", "Render missing ...",
+          class = "dropdown-item"
+        ),
+
+
+        shiny::tags$div(class = "dropdown-divider"),
+
         shiny::actionLink(
           "menu_reload", "Reload",
           class = "dropdown-item"
