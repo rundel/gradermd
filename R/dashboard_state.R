@@ -121,7 +121,7 @@ dashboard_state = R6::R6Class(
 
     update_assignments = function() {
 
-      assignment = purrr::map(
+      private$assign_path = purrr::map(
         private$sub_path,
         fs::dir_ls,
         type = "file",
@@ -130,11 +130,19 @@ dashboard_state = R6::R6Class(
         purrr::map_chr(1, .default = NA) %>%
         unname()
 
+      status = rep("ok", length(private$assign_path)) %>%
+        purrr::modify_if(
+          is.na(private$assign_path),
+          ~ "missing"
+        ) %>%
+        factor(levels = c("ok", "outdated", "missing", "error"))
 
-      private$assign_path = assignment
-      private$assign_name = fs::path_file(assignment)
-
-      self$update_table(Assignment = private$assign_name)
+      self$update_table(
+        Assignment = structure(
+          fs::path_file(private$assign_path),
+          status = status
+        )
+      )
 
       invisible(self)
     },
@@ -142,13 +150,29 @@ dashboard_state = R6::R6Class(
     update_output = function() {
       stopifnot(!is.null(private$assign_path))
 
-      private$output_path = fs::path_ext_set(private$assign_path, private$settings$output)
-      private$output_name = purrr::map_chr(
-        private$output_path,
-        ~ {if (fs::file_exists(.x)) fs::path_file(.x) else NA}
-      )
+      private$output_path = fs::path_ext_set(private$assign_path, private$settings$output) %>%
+        purrr::modify_if(~ !file.exists(.x) %||% {print(.x);TRUE}, ~ NA_character_)
 
-      self$update_table(Output = private$output_name)
+      private$output_name = fs::path_file(private$output_path)
+
+
+      status = rep("ok", length(private$output_path)) %>%
+        purrr::modify_if(
+          is.na(private$output_path),
+          ~ "missing"
+        ) %>%
+        purrr::modify_if(
+          check_outdated(private$assign_path, private$output_path),
+          ~ "outdated"
+        ) %>%
+        factor(levels = c("ok", "outdated", "missing", "error"))
+
+      self$update_table(
+        Output = structure(
+          private$output_name,
+          status = status
+        )
+      )
 
       invisible(self)
     },

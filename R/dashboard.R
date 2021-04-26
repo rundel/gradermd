@@ -163,7 +163,7 @@ settings_dialog_ui = function(input, output, session, state) {
         width = 12,
         shiny::selectInput(
           "setting_output", label = "Output type:",
-          choices = c("html", "pdf"),
+          choices = c("html", "pdf", "md"),
           selected = state$get_setting("output")
         ),
       )
@@ -271,49 +271,27 @@ render_table = function(state) {
         stripedColor = "#f6f8fa",
         highlightColor = "#f0f5f9",
         cellPadding = "8px 12px",
-        style = list(fontFamily = "Fira Code, monospace, monospace"),
+        #style = list(fontFamily = "Fira Code, monospace, monospace"),
         searchInputStyle = list(width = "100%")
       ),
       defaultColDef = reactable::colDef(
         minWidth = 150,
         style = "user-select: none",
         cell = function(value, row, col) {
-          if (is.na(value)) {
-            htmltools::div(
-              class = "tag status-missing",
-              "Missing"
-            )
-          } else if (col == "Assignment") {
-            shiny::tags$div(
-              rs_icon("newRMarkdownDoc", 24),
-              value
-            )
-          } else if (col == "Output") {
-            shiny::tags$div(
-              if (state$get_setting("output") == "html") {
-                rs_icon("newHtmlDoc", 24)
-              } else if (state$get_setting("output") == "pdf") {
-                rs_icon("compilePDF", 24)
-              } else if (state$get_setting("output") == "R") {
-                rs_icon("newSourceDoc", 24)
-              } else {
-                rs_icon("newTextDoc", 24)
-              },
-              value
-            )
-          } else if (col == "dir") {
-            shiny::tags$div(
-              if (value) rs_icon("folder", 24)
-              else       ""
-            )
-          } else if (col == "proj") {
-            shiny::tags$div(
-              if (value) rs_icon("application-x-r-project", 24)
-              else       ""
-            )
+          status = attr(state$get_table()[[col]], "status")[row] %||% "ok"
+
+          l = list(class = paste0("tag status-",status))
+
+          if (status == "missing") {
+            l = c(l, "Missing")
+          } else if (status == "rendering") {
+            l = c(l, list(bs_spinner("Rendering")), "Rendering")
           } else {
-            value
+            l = c(l, add_icons(value, col, state))
           }
+
+
+          do.call(htmltools::div, l)
         }
       ),
       columns = list(
@@ -336,4 +314,38 @@ render_table = function(state) {
       )
     )
   })
+}
+
+add_icons = function(value, col, state) {
+
+  col_icons = list(
+    dir  = function() {
+      if (value) list(rs_icon("folder", 24))
+    },
+
+    proj = function() {
+      if (value) list(rs_icon("application-x-r-project", 24))
+    },
+
+    Assignment = function() {
+      list(rs_icon("newRMarkdownDoc"), value)
+    },
+
+    Output = function() {
+      if (state$get_setting("output") == "html") {
+        list(rs_icon("newHtmlDoc"), value)
+      } else if (state$get_setting("output") == "pdf") {
+        list(rs_icon("compilePDF"), value)
+      } else if (state$get_setting("output") == "md") {
+        list(rs_icon("newMarkdownDoc"), value)
+      }
+
+    },
+
+    default = function() {
+      value
+    }
+  )
+
+  (col_icons[[col]] %||% col_icons$default)()
 }
