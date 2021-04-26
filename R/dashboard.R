@@ -220,6 +220,63 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
           shiny::showModal()
       )
 
+      observeEvent(
+        input$menu_render_missing,
+        {
+          if (state$is_rendering()) {
+            print("already rendering")
+            return()
+          }
+
+
+          missing = which(is.na(state$get_table()$Output))[1:5]
+          print(missing)
+
+          state$start_rendering()$
+            set_status(i = missing, col = "Output", status = "rendering")
+
+          output$table = render_table(state)
+
+          x = promises::promise_map(
+            c(0, missing),
+            function(i) {
+              if (i == 0) # Seems needed to quickly return to unblock output
+                return(i)
+
+              promises::future_promise({
+                cat("Started", i,"\n")
+                state$render(i)$
+                  set_cell(i = i, col = "Output", value = "Blah")$
+                  set_status(i = i, col = "Output", status = "ok")
+
+                cat("Finished", i,"\n")
+                i
+              })
+            }
+          ) %...>%
+            (function(x) {
+              state$stop_rendering()
+            })
+
+          # future::future({
+          #   for(i in missing) {
+          #     cat("Started", i,"\n")
+
+          #     state$render(i)$
+          #       set_cell(i = i, col = "Output", value = "Blah")$
+          #       set_status(i = i, col = "Output", status = "ok")
+
+          #     cat("Finished", i,"\n")
+          #   }
+          # }) %...>%
+          #   (function(x) {
+          #     state$stop_rendering()
+          #   })
+
+          NULL
+        }
+      )
+
 
       # Handle clicks on the submissions column
       observeEvent(
@@ -232,6 +289,14 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
           )
         }
       )
+
+      observeEvent(
+        input$refresh_table,
+        {
+          output$table = render_table(state)
+        }
+      )
+
 
       output$table = render_table(state)
     }
@@ -257,7 +322,14 @@ icon_col = function(name = "") {
 }
 
 render_table = function(state) {
+
   reactable::renderReactable({
+
+    if (state$is_rendering())
+      shiny::invalidateLater(1000)
+
+    cat("here!", state$is_rendering(), "\n")
+
     reactable::reactable(
       state$get_table(),
       defaultPageSize = 100,
@@ -349,3 +421,6 @@ add_icons = function(value, col, state) {
 
   (col_icons[[col]] %||% col_icons$default)()
 }
+
+
+

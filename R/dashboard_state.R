@@ -18,7 +18,9 @@ dashboard_state = R6::R6Class(
     assign_name = NULL,
 
     output_path = NULL,
-    output_name = NULL
+    output_name = NULL,
+
+    rendering = FALSE
   ),
 
   public = list(
@@ -38,6 +40,47 @@ dashboard_state = R6::R6Class(
 
       invisible(self)
     },
+
+    set_cell = function(i, col, value) {
+      stopifnot(col %in% names(private$d))
+      stopifnot(all(i %in% seq_len(nrow(private$d))))
+
+      private$d[[col]][i] = value
+
+      invisible(self)
+    },
+
+    set_status = function(i, col, status) {
+      stopifnot(col %in% names(private$d))
+      stopifnot(all(i %in% seq_len(nrow(private$d))))
+
+      attr(private$d[[col]], "status")[i] = status
+
+      invisible(self)
+    },
+
+    render = function(i) {
+      stopifnot(TRUE)
+
+      Sys.sleep(2)
+
+      invisible(self)
+    },
+
+    start_rendering = function() {
+      private$rendering = TRUE
+      invisible(self)
+    },
+
+    stop_rendering = function() {
+      private$rendering = FALSE
+      invisible(self)
+    },
+
+    is_rendering = function() {
+      private$rendering
+    },
+
 
     had_settings = function() {
       private$proj_had_settings

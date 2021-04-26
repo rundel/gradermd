@@ -22,6 +22,8 @@ Imports:
     magrittr,
     shiny,
     rsicons,
-    R6
+    R6,
+    future,
+    promises
 Remotes:
     rundel/rsicons
