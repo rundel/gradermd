@@ -51,3 +51,25 @@ bs_spinner = function(text) {
     )
   )
 }
+
+as_status = function(x) {
+  factor(x, levels = c("ok", "outdated", "missing", "error", "rendering"))
+}
+
+
+# Based on shinyjs::runjs
+runjs = function(code, sessioon) {
+  fxn <- "runjs"
+  params <- list(code = code)
+
+  fxn <- paste0("shinyjs-", fxn)
+  if (inherits(session, "session_proxy")) {
+    if ("id" %in% names(params) && !is.null(params[["id"]])) {
+      if (!"asis" %in% names(params) || !params[["asis"]]) {
+        params[["id"]] <- session$ns(params[["id"]])
+      }
+    }
+  }
+  session$sendCustomMessage(type = fxn, message = params)
+  invisible(NULL)
+}

@@ -135,7 +135,7 @@ dashboard_state = R6::R6Class(
           is.na(private$assign_path),
           ~ "missing"
         ) %>%
-        factor(levels = c("ok", "outdated", "missing", "error"))
+        as_status()
 
       self$update_table(
         Assignment = structure(
@@ -155,7 +155,6 @@ dashboard_state = R6::R6Class(
 
       private$output_name = fs::path_file(private$output_path)
 
-
       status = rep("ok", length(private$output_path)) %>%
         purrr::modify_if(
           is.na(private$output_path),
@@ -165,7 +164,7 @@ dashboard_state = R6::R6Class(
           check_outdated(private$assign_path, private$output_path),
           ~ "outdated"
         ) %>%
-        factor(levels = c("ok", "outdated", "missing", "error"))
+        as_status()
 
       self$update_table(
         Output = structure(
