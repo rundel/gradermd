@@ -200,6 +200,7 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
           shiny::showModal()
       )
 
+
       # Handle clicks on the submissions column
       observeEvent(
         input$submission_click,
@@ -209,23 +210,6 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
             col  = input$submission_click$col,
             row  = input$submission_click$row
           )
-          #if (is.null(cell) || is.na(cell))
-          #  return()
-
-          #if (col == "Submission") {
-          #  dir = state$sub_path[ row ]
-          #} else if (col == "Assignment") {
-          #  dir = state$assign_path[ row ]
-          #} else if (col == "Output") {
-          #  dir = state$output_path[ row ]
-          #} else {
-          #  return()
-          #}
-
-          #stopifnot(length(dir) <= 1)
-          #stopifnot(fs::file_exists(dir))
-
-          #system_open(dir)
         }
       )
 
