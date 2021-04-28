@@ -16,7 +16,9 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 
         easyClose = FALSE,
         size = "m",
-        footer = bs_action_button(ns("cmd_modal_dismiss"), text = "Running...")
+        footer = shinyjs::disabled(
+          bs_action_button(ns("cmd_modal_dismiss"), text = "Running...")
+        )
       )
 
 
@@ -26,7 +28,6 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
         )
 
         output$cmd_output = shiny::renderText({
-          print("here")
           paste(cmd_output_txt(), collapse="\n")
         })
 
@@ -36,7 +37,6 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
           cmd, args,
           stdout = "|", stderr = "|"
         )
-
 
         shiny::observe({
           alive = p$is_alive()
@@ -55,6 +55,8 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
               inputId = "cmd_modal_dismiss", label = "Finished",
               icon = shiny::icon("check")
             )
+
+            shinyjs::enable("cmd_modal_dismiss")
           }
 
           if (length(new) != 0 && new != "") {
@@ -80,11 +82,12 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 
 
 
-## Usage example
-
-# shinyApp(
+# ## Usage example
+#
+# shiny::shinyApp(
 #   ui = shiny::fluidPage(
-#     actionButton("show", "Show modal dialog"),
+#     shinyjs::useShinyjs(),
+#     shiny::actionButton("show", "Show modal dialog"),
 #     theme = bslib::bs_theme(version = 4)
 #   ),
 #   server = function(input, output, session) {
@@ -95,4 +98,4 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 #     )
 #   }
 # )
-
+#
