@@ -15,27 +15,31 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
         ),
 
         easyClose = FALSE,
-        size = "m",
+        size = "l",
         footer = shinyjs::disabled(
           bs_action_button(ns("cmd_modal_dismiss"), text = "Running...")
         )
       )
 
-
       observeEvent(event(), {
-        cmd_output_txt = reactiveVal(
-          paste(c(">", cmd, args), collapse=" ")
-        )
 
         output$cmd_output = shiny::renderText({
           paste(cmd_output_txt(), collapse="\n")
         })
 
-        showModal(m)
+        observeEvent(
+          input$cmd_modal_dismiss,
+          shiny::removeModal()
+        )
+
+        shiny::showModal(m)
 
         p = processx::process$new(
           cmd, args,
           stdout = "|", stderr = "|"
+        )
+        cmd_output_txt = shiny::reactiveVal(
+          paste(c(">", cmd, args), collapse=" ")
         )
 
         shiny::observe({
@@ -44,6 +48,8 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
             shiny::invalidateLater(interval)
 
           new = p$read_output_lines()
+
+          #print(new)
 
           if (!alive) {
             new = c(
@@ -59,18 +65,14 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
             shinyjs::enable("cmd_modal_dismiss")
           }
 
-          if (length(new) != 0 && new != "") {
-            #print(new)
-            cmd_output_txt(
-              c(cmd_output_txt(), new)
+          #print(new)
+          if (length(new) != 0 && any(new != "")) {
+            #print("here")
+            shiny::isolate(
+              cmd_output_txt( c(cmd_output_txt(), new) )
             )
           }
         })
-
-        observeEvent(
-          input$cmd_modal_dismiss,
-          shiny::removeModal()
-        )
 
       })
 
@@ -93,9 +95,10 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 #   server = function(input, output, session) {
 #     cmd_modal(
 #       "docker_pull", shiny::reactive(input$show),
-#       "docker", c("pull", "rocker/rstudio"),
-#       title = "hello world!"
+#       "docker", c("run", "--rm", "hello-world"),
+#       title = "hello world!",
+#       interval = 500
 #     )
 #   }
 # )
-#
+
