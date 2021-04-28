@@ -195,6 +195,7 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
 
   app = shiny::shinyApp(
     ui = shiny::fluidPage(
+      shinyjs::useShinyjs(),
       shiny::includeCSS(system.file("www/gradermd.css", package="gradermd")),
       menubar(dir),
       shiny::tags$div(

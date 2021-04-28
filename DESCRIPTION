@@ -24,6 +24,7 @@ Imports:
     rsicons,
     R6,
     future,
-    promises
+    promises,
+    shinyjs
 Remotes:
     rundel/rsicons
