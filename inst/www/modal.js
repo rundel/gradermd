@@ -2,7 +2,7 @@ var modal = new Shiny.InputBinding();
 
 $.extend(modal, {
   find: function(scope) {
-    return $(scope).find(".sbs-modal");
+    return $(scope).find(".shiny_modal");
   },
   getValue: function(el) {
     return $(el).hasClass("in");
@@ -14,21 +14,19 @@ $.extend(modal, {
     $(el).off("hidden.bs.modal shown.bs.modal")
   },
   receiveMessage: function(el, data) {
-    if(data.hasOwnProperty("toggle")) {
-      if(data.toggle == "show") {
-        $(el).modal("show");
-      } else if(data.toggle == "hide") {
-        $(el).modal("hide");
-      } else {
-        $(el).modal("toggle");
-      }
-    };
-
-    if(data.hasOwnProperty("update")) {
+    if(data.hasOwnProperty("state")) {
+      $(el).modal(data.state);
+    } else if(data.hasOwnProperty("update")) {
       $(el).modal('handleUpdate')
+    } else {
+      $(el).modal(data)
     }
+
+
+
   },
   initialize: function(el) {
+    /*
     console.log(el);
 
     $("#" + $(el).attr("data-sbs-trigger"))
@@ -36,6 +34,7 @@ $.extend(modal, {
         "data-toggle": "modal",
         "data-target": "#" + $(el).attr("id")
       });
+    */
   }
 });
 
