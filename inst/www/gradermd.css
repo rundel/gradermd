@@ -1,3 +1,7 @@
+h4.modal-title {
+  margin-top: 0;
+}
+
 .tag {
   display: inline-block;
   border-radius: 5px;
@@ -19,10 +23,6 @@
   padding-right: 0.33em;
 }
 
-.tag img {
-
-}
-
 .status-missing {
   background: #D11E36C0;
   color: #FFFFFF;
@@ -36,3 +36,21 @@
   padding-right: 0.33em;
 }
 
+
+.dashboard-table {
+  padding-left: 1%;
+  padding-right: 1%;
+  padding-top: 0.5em;
+}
+
+.docker_details .form-group {
+  margin-bottom: 0.25rem;
+}
+
+.docker_links {
+  font-size: 75%;
+}
+.docker_links a {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}

@@ -132,6 +132,45 @@ settings_dialog_ui = function(input, output, session, state) {
     }
   )
 
+  cmd_modal(
+    "docker_test", shiny::reactive(input$setting_docker_test),
+    "docker", c("run", "--rm", "hello-world"),
+    title = "Docker test"
+  )
+
+  cmd_modal(
+    "docker_pull", shiny::reactive(input$setting_docker_pull),
+    "docker", c("pull", input$setting_docker_image),
+    title = "Docker pull (update) image"
+  )
+
+  observeEvent(
+    input$setting_render_env,
+    {
+      ui = if (input$setting_render_env == "local") {
+        shiny::tagList(
+          shiny::strong("Warning"),
+          " - using your local R environment to run student code is not",
+          "recommend as any accidental or intential side effects will affect",
+          "this machine (e.g. packages installed / upgrades, files deleted, etc.)"
+        )
+      } else if (input$setting_render_env == "docker") {
+        shiny::div(
+          class = "docker_details",
+          shiny::textInput("setting_docker_image", "Docker image:", state$get_setting("docker_image")),
+          shiny::div(
+            class = "docker_links",
+            shiny::actionLink("setting_docker_test", "Test Docker"),
+            shiny::actionLink("setting_docker_pull", "Pull Docker image")
+          )
+        )
+      }
+
+      output$setting_render_extras = shiny::renderUI(ui)
+    }
+  )
+
+
   shiny::modalDialog(
     title = "Project Settings",
 
@@ -181,6 +220,24 @@ settings_dialog_ui = function(input, output, session, state) {
       )
     ),
 
+    shiny::hr(),
+
+    shiny::fluidRow(
+      shiny::column(
+        width = 5,
+        shiny::selectInput(
+          "setting_render_env", "Render environment:",
+          choices = c("Docker" = "docker", "local R" = "local")
+        )
+      ),
+      shiny::column(
+        width = 7,
+        shiny::uiOutput(
+          "setting_render_extras"
+        )
+      )
+    ),
+
     easyClose = FALSE,
     size = "m",
     footer = list(
@@ -197,9 +254,10 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
     ui = shiny::fluidPage(
       shinyjs::useShinyjs(),
       shiny::includeCSS(system.file("www/gradermd.css", package="gradermd")),
+      shiny::includeScript(system.file("www/modal.js", package="gradermd")),
       menubar(dir),
       shiny::tags$div(
-        style = "padding-left: 1%; padding-right: 1%; padding-top: 0.5em;",
+        class = "dashboard-table",
         reactable::reactableOutput("table"),
         shiny::tags$br()
       ),

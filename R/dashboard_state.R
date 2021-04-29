@@ -3,7 +3,8 @@ dashboard_state = R6::R6Class(
     settings = list(
       doc_pat = "*.Rmd",
       doc_regex = FALSE,
-      output = "html"
+      output = "html",
+      docker_image = "rocker/rstudio:latest"
     ),
     d = NULL,
     proj_dir = NULL,
