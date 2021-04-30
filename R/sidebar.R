@@ -24,7 +24,7 @@ sidebar_ui_div = function(...) {
         }
 
         #sidebar-content {
-          padding: 1em;
+          padding: 0 1em;
           min-width: 250px;
         }
     ")),
