@@ -4,59 +4,44 @@ settings_ui = function(id, state) {
   shiny::tagList(
     shiny::h4("Project Settings"),
     shiny::br(),
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::textInput(
-          ns("doc_pat"), label = "Document pattern:"#, value = state$get_setting("doc_pat")
-        ),
-        shiny::checkboxInput(
-          ns("doc_regex"), label = "Use regex"#, value = state$get_setting("doc_regex")
-        )
-      )
+
+    shiny::textInput(
+      ns("doc_pat"), label = "Assignment pattern:"#, value = state$get_setting("doc_pat")
+    ),
+    shiny::checkboxInput(
+      ns("doc_regex"), label = "Use regex"#, value = state$get_setting("doc_regex")
     ),
 
     shiny::hr(),
 
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::selectInput(
-          ns("output"), label = "Output type:",
-          choices = c("html", "pdf", "md")#, selected = state$get_setting("output")
-        ),
-      )
+    shiny::selectInput(
+      ns("output"), label = "Output type:",
+      choices = c("html", "pdf", "md")#, selected = state$get_setting("output")
+
     ),
 
     shiny::hr(),
 
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::fileInput(
-          ns("roster_file"), "Roster file:", accept = ".csv"
-        ),
-        shiny::uiOutput(
-          ns("roster_conditional")
-        )
-      )
+
+    shiny::fileInput(
+      ns("roster_file"), "Roster file:", accept = ".csv"
+    ),
+    shiny::uiOutput(
+      ns("roster_conditional")
     ),
 
     shiny::hr(),
 
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::selectInput(
-          ns("render_env"),
-          "Render environment:",
-          choices = c("Docker" = "docker", "local R" = "local")
-        ),
-        shiny::uiOutput(
-          ns("render_extras")
-        )
-      )
+    shiny::selectInput(
+      ns("render_env"),
+      "Render environment:",
+      choices = c("Docker" = "docker", "local R" = "local")
     ),
+    shiny::uiOutput(
+      ns("render_extras")
+    ),
+
+    shiny::br(),
     shiny::br(),
 
     shiny::actionButton(
