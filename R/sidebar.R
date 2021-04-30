@@ -6,10 +6,9 @@ sidebar_ui_button = function(id, type = c("button", "link"), label, ...) {
   else if (type == "link") shiny::actionLink(ns("sidebar_toggle"), label, ...)
 }
 
-sidebar_ui_div = function(..., width = 250) {
+sidebar_ui_div = function(...) {
   shiny::tagList(
-    shiny::tags$style( shiny::HTML(
-      glue::glue("
+    shiny::tags$style( shiny::HTML("
         .sidebar {
           height: 100%;
           width: 0;
@@ -26,10 +25,9 @@ sidebar_ui_div = function(..., width = 250) {
 
         #sidebar-content {
           padding: 1em;
-          width: [width]px;
+          min-width: 250px;
         }
-      ", .open="[", .close = "]")
-    )),
+    ")),
     shiny::div(
       id = "right-sidebar", class = "sidebar",
       shiny::div(
@@ -45,6 +43,10 @@ sidebar_server = function(id, body_id, width = 250) {
     id,
     function(input, output, session) {
       collapsed = shiny::reactiveVal(TRUE)
+
+      shinyjs::runjs(glue::glue(
+        'document.getElementById("sidebar-content").style.width = "{width}px";',
+      ) )
 
       shiny::observeEvent(input$sidebar_toggle, {
         x = if (collapsed()) width else 0
