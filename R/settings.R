@@ -44,8 +44,16 @@ settings_ui = function(id, state) {
     shiny::br(),
     shiny::br(),
 
-    shiny::actionButton(
-      ns("save"), "Save", class = "btn-success"
+    shiny::fluidRow(
+      shiny::column(width=4),
+      shiny::column(
+        width = 4,
+        shiny::actionButton(ns("reset"), "Reset", width="75px"),
+      ),
+      shiny::column(
+        width = 4,
+        shiny::actionButton(ns("save"), "Save", class = "btn-success", width="75px")
+      )
     )
   )
 }
@@ -59,17 +67,24 @@ settings_server = function(id, state) {
 
       ns = shiny::NS(id)
 
-      shiny::updateTextInput(
-        session, "doc_pat", value = state$get_setting("doc_pat")
-      )
-      shiny::updateCheckboxInput(
-        session, "doc_regex", value = state$get_setting("doc_regex")
-      )
-      shiny::updateSelectInput(
-        session, "output", selected = state$get_setting("output")
-      )
+      settings_from_state = function() {
+        shiny::updateTextInput(
+          session, "doc_pat", value = state$get_setting("doc_pat")
+        )
+        shiny::updateCheckboxInput(
+          session, "doc_regex", value = state$get_setting("doc_regex")
+        )
+        shiny::updateSelectInput(
+          session, "output", selected = state$get_setting("output")
+        )
+      }
 
+      settings_from_state()
 
+      observeEvent(
+        input$reset,
+        settings_from_state()
+      )
 
       observeEvent(
         input$save,
