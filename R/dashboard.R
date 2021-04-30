@@ -82,177 +82,13 @@ menubar = function(proj_dir) {
 }
 
 
-settings_dialog_ui = function(input, output, session, state) {
 
-  observeEvent(
-    input$settings_cancel,
-    shiny::removeModal()
-  )
-
-  observeEvent(
-    input$settings_save,
-    {
-      state$set_setting(
-        doc_pat       = input$setting_doc_pat,
-        doc_regex     = input$setting_doc_regex,
-        output        = input$setting_output
-        #roster_path   = input$setting_roster_path,
-        #roster_column = input$setting_roster_column
-      )$
-        save_settings()$
-        update_assignments()$
-        update_output()
-
-      shiny::removeModal()
-
-      #reactable::updateReactable(
-      #  "table", data = state$get_table(), session = session
-      #)
-
-      # Rerender the whole thing because update is broken atm.
-      output$table = render_table(state)
-    }
-  )
-
-
-  observeEvent(
-    input$setting_roster_file,
-    {
-      shiny::req(input$setting_roster_file)
-
-      d = readr::read_csv(input$setting_roster_file$datapath)
-      output$setting_roster = shiny::reactive({
-        d
-      })
-
-      output$setting_roster_conditional = shiny::renderUI({
-        shiny::selectInput(
-          "setting_roster_join_column", "Submission names column:",
-          choices = names(d)
-        )
-      })
-    }
-  )
-
-  cmd_modal(
-    "docker_test", shiny::reactive(input$setting_docker_test),
-    "docker", c("run", "--rm", "hello-world"),
-    title = "Docker test"
-  )
-
-  cmd_modal(
-    "docker_pull", shiny::reactive(input$setting_docker_pull),
-    "docker", c("pull", input$setting_docker_image),
-    title = "Docker pull (update) image"
-  )
-
-  observeEvent(
-    input$setting_render_env,
-    {
-      ui = if (input$setting_render_env == "local") {
-        shiny::tagList(
-          shiny::strong("Warning"),
-          " - using your local R environment to run student code is not",
-          "recommend as any accidental or intential side effects will affect",
-          "this machine (e.g. packages installed / upgrades, files deleted, etc.)"
-        )
-      } else if (input$setting_render_env == "docker") {
-        shiny::div(
-          class = "docker_details",
-          shiny::textInput("setting_docker_image", "Docker image:", state$get_setting("docker_image")),
-          shiny::div(
-            class = "docker_links",
-            shiny::actionLink("setting_docker_test", "Test Docker"),
-            shiny::actionLink("setting_docker_pull", "Pull Docker image")
-          )
-        )
-      }
-
-      output$setting_render_extras = shiny::renderUI(ui)
-    }
-  )
-
-
-  shiny::modalDialog(
-    title = "Project Settings",
-
-    # Help javascipt for closing the modal dialog
-    shiny::tags$script(shiny::HTML(
-      '$(document).keyup(function(e) {
-        if (document.activeElement.id == "shiny-modal") {
-          if (e.key == "Enter") {
-            $("#settings_save").click();
-          } else if (e.key == "Escape") {
-            $("#settings_cancel").click();
-          }
-        }
-      });'
-    )),
-
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::textInput("setting_doc_pat", label = "Document pattern:", value = state$get_setting("doc_pat")),
-        shiny::checkboxInput("setting_doc_regex", label = "Use regex", value = state$get_setting("doc_regex"))
-      )
-    ),
-
-    shiny::hr(),
-
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::selectInput(
-          "setting_output", label = "Output type:",
-          choices = c("html", "pdf", "md"),
-          selected = state$get_setting("output")
-        ),
-      )
-    ),
-
-    shiny::hr(),
-
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::fileInput("setting_roster_file", "Roster file:", accept = ".csv"),
-        shiny::uiOutput(
-          "setting_roster_conditional"
-        )
-      )
-    ),
-
-    shiny::hr(),
-
-    shiny::fluidRow(
-      shiny::column(
-        width = 5,
-        shiny::selectInput(
-          "setting_render_env", "Render environment:",
-          choices = c("Docker" = "docker", "local R" = "local")
-        )
-      ),
-      shiny::column(
-        width = 7,
-        shiny::uiOutput(
-          "setting_render_extras"
-        )
-      )
-    ),
-
-    easyClose = FALSE,
-    size = "m",
-    footer = list(
-      shiny::actionButton("settings_cancel", "Cancel"),
-      shiny::actionButton("settings_save", "Save", class = "btn-success")
-    )
-  )
-}
 
 #' @export
 dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", pattern = NULL, regexp = FALSE) {
 
   shiny::addResourcePath("www", system.file("www/", package="gradermd"))
+
 
   app = shiny::shinyApp(
     ui = shiny::fluidPage(
@@ -266,9 +102,7 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
         shiny::br()
       ),
       sidebar_ui_div(
-        "Hello",
-        shiny::hr(),
-        "bye bye"
+        settings_ui("settings")
       ),
 
       theme = bslib::bs_theme(version = 4)
@@ -278,19 +112,20 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
       state = dashboard_state$new(dir, pattern, regexp)
 
       #sidebar_ui_button("rsb", "link", "", icon = shiny::icon("gear"))
-      sidebar_server("rsb", "dashboard-table")
+      sidebar_server("rsb", "dashboard-table", width = 300)
 
+      settings_server("settings", state)
 
-      if (!state$had_settings()) { # This is a new project so show settings pane
-        settings_dialog_ui(input, output, session, state) %>%
-          shiny::showModal()
-      }
-
-      observeEvent(
-        input$menu_settings,
-        settings_dialog_ui(input, output, session, state) %>%
-          shiny::showModal()
-      )
+      #if (!state$had_settings()) { # This is a new project so show settings pane
+      #  settings_dialog_ui(input, output, session, state) %>%
+      #    shiny::showModal()
+      #}
+      #
+      #observeEvent(
+      #  input$menu_settings,
+      #  settings_dialog_ui(input, output, session, state) %>%
+      #    shiny::showModal()
+      #)
 
       observeEvent(
         input$menu_render_missing,
