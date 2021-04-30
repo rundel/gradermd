@@ -1,10 +1,10 @@
 menubar = function(proj_dir) {
   shiny::tags$nav(
-    class = "navbar navbar-light bg-light justify-content-between",
+    class = "navbar sticky-top navbar-light bg-light justify-content-between",
 
     shiny::tags$div(
       class = "navbar-brand",
-      "gradermd Dashboard"
+      "gradermd"
     ),
 
     shiny::tags$span(
@@ -74,7 +74,9 @@ menubar = function(proj_dir) {
           "menu_settings", "Settings",
           class = "dropdown-item"
         ),
-      )
+      ),
+
+      sidebar_ui_button("rsb", "button", "", icon = shiny::icon("gear"))
     )
   )
 }
@@ -250,16 +252,23 @@ settings_dialog_ui = function(input, output, session, state) {
 #' @export
 dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", pattern = NULL, regexp = FALSE) {
 
+  shiny::addResourcePath("www", system.file("www/", package="gradermd"))
+
   app = shiny::shinyApp(
     ui = shiny::fluidPage(
       shinyjs::useShinyjs(),
-      shiny::includeCSS(system.file("www/gradermd.css", package="gradermd")),
-      shiny::includeScript(system.file("www/modal.js", package="gradermd")),
+      shiny::tags$link(rel="stylesheet", href="www/gradermd.css"),
+      shiny::tags$script(type="text/javascript", src="www/modal.js"),
       menubar(dir),
-      shiny::tags$div(
-        class = "dashboard-table",
+      shiny::div(
+        id = "dashboard-table",
         reactable::reactableOutput("table"),
-        shiny::tags$br()
+        shiny::br()
+      ),
+      sidebar_ui_div(
+        "Hello",
+        shiny::hr(),
+        "bye bye"
       ),
 
       theme = bslib::bs_theme(version = 4)
@@ -267,6 +276,10 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
     server = function(input, output, session) {
 
       state = dashboard_state$new(dir, pattern, regexp)
+
+      #sidebar_ui_button("rsb", "link", "", icon = shiny::icon("gear"))
+      sidebar_server("rsb", "dashboard-table")
+
 
       if (!state$had_settings()) { # This is a new project so show settings pane
         settings_dialog_ui(input, output, session, state) %>%

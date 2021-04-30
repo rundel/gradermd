@@ -1,3 +1,19 @@
+.container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+nav.navbar {
+  padding-left: 2%;
+  padding-right: 2%;
+}
+
+#icon_settings {
+  padding-left: 1em;
+}
+
+
+
 h4.modal-title {
   margin-top: 0;
 }
@@ -37,10 +53,10 @@ h4.modal-title {
 }
 
 
-.dashboard-table {
-  padding-left: 1%;
-  padding-right: 1%;
-  padding-top: 0.5em;
+#dashboard-table {
+  padding-left: 2.5%;
+  padding-right: 2.5%;
+  padding-top: 0.25em;
 }
 
 .docker_details .form-group {
