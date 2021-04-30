@@ -72,7 +72,7 @@ settings_server = function(id, state) {
 
 
       observeEvent(
-        input$settings_save,
+        input$save,
         {
           state$set_setting(
             doc_pat       = input$doc_pat,
@@ -99,7 +99,7 @@ settings_server = function(id, state) {
           shiny::req(input$roster_file)
 
           d = readr::read_csv(input$roster_file$datapath)
-          output$setting_roster = shiny::reactive({
+          output$roster = shiny::reactive({
             d
           })
 
@@ -138,7 +138,7 @@ settings_server = function(id, state) {
           } else if (input$render_env == "docker") {
             shiny::div(
               class = "docker_details",
-              shiny::textInput("setting_docker_image", "Docker image:", state$get_setting("docker_image")),
+              shiny::textInput("docker_image", "Docker image:", state$get_setting("docker_image")),
               shiny::div(
                 class = "docker_links",
                 shiny::actionLink(ns("docker_test"), "Test Docker"),
