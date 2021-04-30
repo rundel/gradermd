@@ -114,18 +114,17 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
       #sidebar_ui_button("rsb", "link", "", icon = shiny::icon("gear"))
       sidebar_server("rsb", "dashboard-table", width = 300)
 
-      settings_server("settings", state)
+      settings_event = settings_server("settings", state)
 
-      #if (!state$had_settings()) { # This is a new project so show settings pane
-      #  settings_dialog_ui(input, output, session, state) %>%
-      #    shiny::showModal()
-      #}
-      #
-      #observeEvent(
-      #  input$menu_settings,
-      #  settings_dialog_ui(input, output, session, state) %>%
-      #    shiny::showModal()
-      #)
+      # Refresh the table on a save event
+      observeEvent(
+        settings_event(),
+        {
+          if (settings_event() == "save") {
+            output$table = render_table(state)
+          }
+        }
+      )
 
       observeEvent(
         input$menu_render_missing,
@@ -147,7 +146,7 @@ dashboard = function(dir = "~/Desktop/StatProg-s1-2020/Marking/hw1/repos/", patt
           x = promises::promise_map(
             c(0, missing),
             function(i) {
-              if (i == 0) # Seems needed to quickly return to unblock output
+              if (i == 0) # Seems needed to quickly return to avoid blocking output
                 return(i)
 
               promises::future_promise({

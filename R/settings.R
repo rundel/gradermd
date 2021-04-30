@@ -86,6 +86,8 @@ settings_server = function(id, state) {
         settings_from_state()
       )
 
+      event = shiny::reactiveVal()
+
       observeEvent(
         input$save,
         {
@@ -100,10 +102,9 @@ settings_server = function(id, state) {
             update_assignments()$
             update_output()
 
-          #FIXME - need to pass this into the
-
-          # Rerender the whole thing because update is broken atm.
-          #output$table = render_table(state)
+          # Value needs to change to trigger events downstream
+          event("")
+          event("save")
         }
       )
 
@@ -166,6 +167,7 @@ settings_server = function(id, state) {
         }
       )
 
+      return(event)
     }
   )
 }
