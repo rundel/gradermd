@@ -37,8 +37,29 @@ settings_ui = function(id, state) {
       "Render environment:",
       choices = c("Docker" = "docker", "local R" = "local")
     ),
-    shiny::uiOutput(
-      ns("render_extras")
+
+    shiny::conditionalPanel(
+      glue::glue('input["{ns("render_env")}"] == "local"'),
+      shiny::div(
+        style = "font-size: 75%; padding-left: 0.75em; padding-right: 0.75em;",
+        shiny::strong("Warning"),
+        " - using your local R environment to run student code is not",
+        "recommend as any accidental or intential side effects will affect",
+        "this machine (e.g. packages installed / upgrades, files deleted, etc.)"
+      )
+    ),
+
+    shiny::conditionalPanel(
+      glue::glue('input["{ns("render_env")}"] == "docker"'),
+      shiny::div(
+        class = "docker_details",
+        shiny::textInput(ns("docker_image"), "Docker image:", "rocker/rstudio:latest"), #state$get_setting("docker_image")),
+        shiny::div(
+          class = "docker_links",
+          shiny::actionLink(ns("docker_test"), "Test Docker"),
+          shiny::actionLink(ns("docker_pull"), "Pull Docker image")
+        )
+      )
     ),
 
     shiny::br(),
@@ -138,33 +159,6 @@ settings_server = function(id, state) {
         "docker_pull", shiny::reactive(input$docker_pull),
         "docker", c("pull", input$docker_image),
         title = "Docker pull (update) image"
-      )
-
-      observeEvent(
-        input$render_env,
-        {
-          ui = if (input$render_env == "local") {
-            shiny::div(
-              style = "font-size: 75%; padding-left: 0.75em; padding-right: 0.75em;",
-              shiny::strong("Warning"),
-              " - using your local R environment to run student code is not",
-              "recommend as any accidental or intential side effects will affect",
-              "this machine (e.g. packages installed / upgrades, files deleted, etc.)"
-            )
-          } else if (input$render_env == "docker") {
-            shiny::div(
-              class = "docker_details",
-              shiny::textInput("docker_image", "Docker image:", state$get_setting("docker_image")),
-              shiny::div(
-                class = "docker_links",
-                shiny::actionLink(ns("docker_test"), "Test Docker"),
-                shiny::actionLink(ns("docker_pull"), "Pull Docker image")
-              )
-            )
-          }
-
-          output$render_extras = shiny::renderUI(ui)
-        }
       )
 
       return(event)
