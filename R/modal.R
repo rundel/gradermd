@@ -13,7 +13,10 @@ modal_toggle = function(modal_id, session = shiny::getDefaultReactiveDomain()) {
   session$sendInputMessage(modal_id, list(state = "toggle"))
 }
 
-
+modal_update = function(modal_id, session = shiny::getDefaultReactiveDomain()) {
+  shiny:::validate_session_object(session)
+  session$sendInputMessage(modal_id, list(update = TRUE))
+}
 
 modal_set_options = function(
   modal_id,
@@ -35,12 +38,13 @@ modal_set_options = function(
 }
 
 
-modal_dismiss_button = function(label = "Close", class = "btn btn-default") {
+modal_dismiss_button = function(label = "Close", class = "btn btn-default", ...) {
   shiny::tags$button(
     type = "button",
     class = class,
     `data-dismiss` = "modal",
-    label
+    label,
+    ...
   )
 }
 
@@ -127,35 +131,35 @@ modal_dialog = function (
 }
 
 
-library(shiny)
-shinyApp(
-  basicPage(
-    shiny::includeScript(system.file("www/modal.js", package="gradermd")),
-    actionButton("showModal1","Show Modal 1"),
-    modal_dialog(
-      "modal1", "This is modal 1",
-      footer = shiny::tagList(
-        modal_dismiss_button(),
-        actionButton("showModal2", "Show Modal 2")
-      )
-    ),
-    modal_dialog(
-      "modal2", "This is modal 2",
-      p("After dismissing me, this should return to the first modal"),
-      close_x = TRUE,
-      easy_close = TRUE
-    )
-  ),
-  function(input, output, session) {
-
-    shiny::observeEvent(input$showModal1, {
-      modal_options("modal1", backdrop = FALSE, FALSE)
-      modal_show("modal1")
-    })
-
-    shiny::observeEvent(input$showModal2, {
-      modal_show("modal2")
-    })
-
-  }
-)
+# library(shiny)
+# shinyApp(
+#   basicPage(
+#     shiny::includeScript(system.file("www/modal.js", package="gradermd")),
+#     actionButton("showModal1","Show Modal 1"),
+#     modal_dialog(
+#       "test_modal1", "This is modal 1",
+#       footer = shiny::tagList(
+#         modal_dismiss_button(),
+#         actionButton("showModal2", "Show Modal 2")
+#       )
+#     ),
+#     modal_dialog(
+#       "modal2", "This is modal 2",
+#       p("After dismissing me, this should return to the first modal"),
+#       close_x = TRUE,
+#       easy_close = TRUE
+#     )
+#   ),
+#   function(input, output, session) {
+#
+#     shiny::observeEvent(input$showModal1, {
+#       modal_set_options("modal1", backdrop = FALSE, FALSE)
+#       modal_show("test_modal1")
+#     })
+#
+#     shiny::observeEvent(input$showModal2, {
+#       modal_show("modal2")
+#     })
+#
+#   }
+# )

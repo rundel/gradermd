@@ -17,15 +17,13 @@ $.extend(modal, {
     if(data.hasOwnProperty("state")) {
       $(el).modal(data.state);
     } else if(data.hasOwnProperty("update")) {
-      $(el).modal('handleUpdate')
+      $(el).modal('handleUpdate');
     } else {
       $(el).modal(data)
     }
-
-
-
   },
   initialize: function(el) {
+
     /*
     console.log(el);
 
