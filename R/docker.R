@@ -1,45 +1,60 @@
-cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 100) {
+cmd_modal_ui = function(id, label, title = "", type = c("link", "button")) {
+  ns = shiny::NS(id)
+
+  type = match.arg(type)
+
+  action = if (type == "link") shiny::actionLink else  shiny::actionButton
+
+  shiny::tagList(
+    modal_dialog(
+      id = ns("modal_dialog"),
+      title = title,
+
+      htmltools::tagAppendAttributes(
+        shiny::verbatimTextOutput(ns("modal_output")),
+        style = 'width:100%; height: auto; max-height: 90%; overflow-y: auto;
+                   margin:0 auto; margin-bottom: 0; padding: 5px 10px; border: 1px;'
+      ),
+
+      easy_close = FALSE,
+      dialog_class = "modal-lg",
+      footer = shinyjs::disabled(
+        modal_dismiss_button(
+          id = ns("modal_dismiss"),
+          shiny::tagList(
+            shiny::span(class="spinner-border spinner-border-sm", role="status", `aria-hidden`="true"),
+            "Running..."
+          )
+        )
+      )
+    ),
+
+    action(ns("modal_trigger"), label),
+  )
+}
+
+
+
+cmd_modal_server = function(id, cmd, args = character(), title = "", interval = 100) {
   shiny::moduleServer(
     id,
     function(input, output, session) {
       ns = shiny::NS(id)
 
-      m = shiny::modalDialog(
-        title = title,
-
-        shiny::div(
-          style = "width:100%; height:400px; margin:0 auto; padding: 5px 10px; border: 1px; overflow-y: auto",
-          shiny::verbatimTextOutput(
-            ns("cmd_output")
-          )
-        ),
-
-        easyClose = FALSE,
-        size = "l",
-        footer = shinyjs::disabled(
-          bs_action_button(ns("cmd_modal_dismiss"), text = "Running...")
+      observeEvent(input$modal_trigger, {
+        output_txt = shiny::reactiveVal(
+          paste(c(">", cmd, args), collapse=" ")
         )
-      )
 
-      observeEvent(event(), {
-
-        output$cmd_output = shiny::renderText({
-          paste(cmd_output_txt(), collapse="\n")
+        output$modal_output = shiny::renderText({
+          paste(output_txt(), collapse="\n")
         })
 
-        observeEvent(
-          input$cmd_modal_dismiss,
-          shiny::removeModal()
-        )
-
-        shiny::showModal(m)
+        modal_show("modal_dialog")
 
         p = processx::process$new(
           cmd, args,
           stdout = "|", stderr = "|"
-        )
-        cmd_output_txt = shiny::reactiveVal(
-          paste(c(">", cmd, args), collapse=" ")
         )
 
         shiny::observe({
@@ -49,7 +64,6 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 
           new = p$read_output_lines()
 
-          #print(new)
 
           if (!alive) {
             new = c(
@@ -57,19 +71,17 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
               paste0("Process completed with exit code ", p$get_exit_status())
             )
 
-            shiny::updateActionButton(
-              inputId = "cmd_modal_dismiss", label = "Finished",
-              icon = shiny::icon("check")
-            )
+            shinyjs::enable("modal_dismiss")
 
-            shinyjs::enable("cmd_modal_dismiss")
+            shinyjs::runjs( paste0(
+              "document.getElementById('", ns("modal_dismiss"), "').innerHTML = 'Dismiss'"
+            ) )
           }
 
-          #print(new)
+          print(new)
           if (length(new) != 0 && any(new != "")) {
-            #print("here")
             shiny::isolate(
-              cmd_output_txt( c(cmd_output_txt(), new) )
+              output_txt( c(output_txt(), new) )
             )
           }
         })
@@ -83,22 +95,26 @@ cmd_modal = function(id, event, cmd, args = character(), title = "", interval = 
 
 
 
+test_docker_modal = function() {
 
-# ## Usage example
-#
-# shiny::shinyApp(
-#   ui = shiny::fluidPage(
-#     shinyjs::useShinyjs(),
-#     shiny::actionButton("show", "Show modal dialog"),
-#     theme = bslib::bs_theme(version = 4)
-#   ),
-#   server = function(input, output, session) {
-#     cmd_modal(
-#       "docker_pull", shiny::reactive(input$show),
-#       "docker", c("run", "--rm", "hello-world"),
-#       title = "hello world!",
-#       interval = 500
-#     )
-#   }
-# )
+  shiny::addResourcePath("www", system.file("www/", package="gradermd"))
 
+  # ## Usage example
+  #
+  shiny::shinyApp(
+    ui = shiny::fluidPage(
+      shinyjs::useShinyjs(),
+      shiny::tags$script(type="text/javascript", src="www/modal.js"),
+      cmd_modal_ui("test", label = "Run ...", type = "button"),
+      theme = bslib::bs_theme(version = 4)
+    ),
+    server = function(input, output, session) {
+      cmd_modal_server(
+        "test",
+        "docker", c("run", "--rm", "hello-world"),
+        title = "hello world!",
+        interval = 500
+      )
+    }
+  )
+}
