@@ -13,7 +13,6 @@ sidebar_ui_div = function(...) {
           height: 100%;
           width: 0;
           position: fixed;
-          z-index: 100;
           top: 0;
           right: 0;
           background-color: #ccc;
