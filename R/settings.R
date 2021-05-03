@@ -56,8 +56,11 @@ settings_ui = function(id, state) {
         shiny::textInput(ns("docker_image"), "Docker image:", "rocker/rstudio:latest"), #state$get_setting("docker_image")),
         shiny::div(
           class = "docker_links",
-          shiny::actionLink(ns("docker_test"), "Test Docker"),
-          shiny::actionLink(ns("docker_pull"), "Pull Docker image")
+          #shiny::actionLink(ns("docker_test"), "Test Docker"),
+          #shiny::actionLink(ns("docker_pull"), "Pull Docker image")
+          cmd_modal_ui(ns("docker_test"), label = "Test Docker", type = "link", title = "Testing Docker setup"),
+          cmd_modal_ui(ns("docker_pull"), label = "Pull Docker image", type = "link",
+                       title = paste("Pulling (updating) Docker image"))
         )
       )
     ),
@@ -149,14 +152,14 @@ settings_server = function(id, state) {
         }
       )
 
-      cmd_modal(
-        "docker_test", shiny::reactive(input$docker_test),
+      cmd_modal_server(
+        "docker_test",
         "docker", c("run", "--rm", "hello-world"),
         title = "Docker test"
       )
 
-      cmd_modal(
-        "docker_pull", shiny::reactive(input$docker_pull),
+      cmd_modal_server(
+        "docker_pull",
         "docker", c("pull", input$docker_image),
         title = "Docker pull (update) image"
       )
