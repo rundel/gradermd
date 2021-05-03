@@ -34,7 +34,7 @@ modal_set_options = function(
   )
 
   shiny:::validate_session_object(session)
-  session$sendInputMessage(modal_id, msg)
+  session$sendInputMessage(modal_id, shiny:::dropNulls(msg))
 }
 
 
