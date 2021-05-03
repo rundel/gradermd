@@ -24,9 +24,12 @@ $.extend(modal, {
   },
   initialize: function(el) {
 
-    /*
-    console.log(el);
+    /* Modals can be messed up by parent element's styles, so move them to the end of body*/
+    el.remove();
+    document.body.appendChild(el);
 
+
+    /*
     $("#" + $(el).attr("data-sbs-trigger"))
       .attr({
         "data-toggle": "modal",
